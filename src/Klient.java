@@ -13,6 +13,7 @@ public class Klient {
         ObjectOutputStream objOutput = null;
         ObjectInputStream objInput = null;
         Scanner scanner = null;
+
         try {
             socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
             output = new PrintWriter(socket.getOutputStream(), true);
@@ -34,16 +35,48 @@ public class Klient {
 
             System.out.println("Polaczono z serwerem. Status: " + response);
 
-            // Teraz tworzymy Object streams dla dalszej komunikacji
+            // Tworzymy Object streams dla dalszej komunikacji
             objOutput = new ObjectOutputStream(socket.getOutputStream());
             objInput = new ObjectInputStream(socket.getInputStream());
 
             while (true) {
-                // Używamy nextLine() dla całej linii wejściowej
-                System.out.print("Podaj nazwę klasy do pobrania (kot/pies/samochod): ");
-                String klasyRequest = scanner.nextLine().trim();  // Wczytujemy nazwę klasy
+                // Zapytanie o nazwę klasy do pobrania i numerowanie odpowiedzi
+                System.out.println("Wybierz klase do pobrania:");
+                System.out.println("1. Kot");
+                System.out.println("2. Pies");
+                System.out.println("3. Samochod");
+                System.out.println("4. Zakoncz polaczenie");
 
-                objOutput.writeObject(klasyRequest);  // Wysyłamy żądanie o obiekty
+                // Wczytanie wyboru numeru
+                int choice = scanner.nextInt();
+                scanner.nextLine();  // Czyścimy bufor
+
+                if (choice == 4) {
+                    // Klient chce zakończyć połączenie
+                    System.out.println("Zamykanie polaczenia...");
+                    break;
+                }
+
+                String klasyRequest = "";
+
+                // Wybór klasy na podstawie numeru
+                switch (choice) {
+                    case 1:
+                        klasyRequest = "Kot";
+                        break;
+                    case 2:
+                        klasyRequest = "Pies";
+                        break;
+                    case 3:
+                        klasyRequest = "Samochod";
+                        break;
+                    default:
+                        System.out.println("Nieprawidłowy wybór.");
+                        continue;
+                }
+
+                // Wysyłamy żądanie o obiekty
+                objOutput.writeObject(klasyRequest);
                 objOutput.flush();
 
                 // Odbieranie odpowiedzi od serwera
@@ -64,7 +97,9 @@ public class Klient {
                         }
                         // Wypisanie otrzymanych obiektów
                         System.out.println("Otrzymane obiekty: ");
-                        serializables.forEach(System.out::println);
+                        for (int i = 0; i < serializables.size(); i++) {
+                            System.out.println((i + 1) + ". " + serializables.get(i));
+                        }
                     } else {
                         System.out.println("Nie znaleziono obiektów dla klasy: " + klasyRequest);
                     }
@@ -78,12 +113,17 @@ public class Klient {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (objInput != null) try { objInput.close(); } catch (IOException e) {}
-            if (objOutput != null) try { objOutput.close(); } catch (IOException e) {}
-            if (input != null) try { input.close(); } catch (IOException e) {}
-            if (output != null) output.close();
-            if (socket != null) try { socket.close(); } catch (IOException e) {}
-            if (scanner != null) scanner.close();
+            // Zamknięcie wszystkich zasobów
+            try {
+                if (objInput != null) objInput.close();
+                if (objOutput != null) objOutput.close();
+                if (input != null) input.close();
+                if (output != null) output.close();
+                if (socket != null) socket.close();
+                if (scanner != null) scanner.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

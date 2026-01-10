@@ -12,19 +12,19 @@ public class Serwer {
 
     public static void main(String[] args) throws IOException {
         // Inicjalizacja obiektow w mapie
-        obiektyMap.put("kot", Arrays.asList(
+        obiektyMap.put("Kot", Arrays.asList(
                 new Kot("Reksio", 5),
                 new Kot("Burek", 3),
                 new Kot("Azor", 2),
                 new Kot("Kitek", 4)
         ));
-        obiektyMap.put("pies", Arrays.asList(
+        obiektyMap.put("Pies", Arrays.asList(
                 new Pies("Burek", "Labrador"),
                 new Pies("Reksio", "Golden"),
                 new Pies("Azor", "Bulldog"),
                 new Pies("Luna", "Pitbull")
         ));
-        obiektyMap.put("samochod", Arrays.asList(
+        obiektyMap.put("Samochod", Arrays.asList(
                 new Samochod("BMW", 2020),
                 new Samochod("Audi", 2018),
                 new Samochod("Toyota", 2022),
@@ -107,18 +107,24 @@ public class Serwer {
                 ObjectInputStream objInput = new ObjectInputStream(socket.getInputStream());
 
                 while (true) {
-                    // Odbieranie zadania klienta o obiekty
-                    String objectRequest = (String) objInput.readObject();
-                    System.out.println("Klient " + clientId + " zadal obiekty: " + objectRequest);
+                    try {
+                        // Odbieranie zadania klienta o obiekty
+                        String objectRequest = (String) objInput.readObject();
+                        System.out.println("Klient " + clientId + " zadal obiekty: " + objectRequest);
 
-                    // Wysylanie obiektow do klienta
-                    if (obiektyMap.containsKey(objectRequest)) {
-                        objOutput.writeObject(obiektyMap.get(objectRequest));
-                        System.out.println("Serwer wyslal obiekty do klienta ID: " + clientId + ": " + objectRequest);
-                    } else {
-                        objOutput.writeObject(new ArrayList<Serializable>());
+                        // Wysylanie obiektow do klienta
+                        if (obiektyMap.containsKey(objectRequest)) {
+                            objOutput.writeObject(obiektyMap.get(objectRequest));
+                            System.out.println("Serwer wyslal obiekty do klienta ID: " + clientId + ": " + objectRequest);
+                        } else {
+                            objOutput.writeObject(new ArrayList<Serializable>());
+                        }
+                        objOutput.flush(); // Wymuszenie zapisania danych przed zamknieciem
+                    } catch (EOFException e) {
+                        // Obsługa rozłączenia klienta - logowanie informacji o rozłączeniu
+                        System.out.println("Klient ID: " + clientId + " rozlaczyl sie.");
+                        break;  // Przerywamy obsługę tego klienta
                     }
-                    objOutput.flush(); // Wymuszenie zapisania danych przed zamknieciem
                 }
             } catch (IOException | ClassNotFoundException | InterruptedException e) {
                 e.printStackTrace();
