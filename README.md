@@ -1,58 +1,86 @@
+***************************************************************************************
+=======================
+*** Serwer i Klient ***
+=======================
 
-# Aplikacja Klient-Serwer
+Opis Projektu:
+---------------
+Projekt demonstruje działanie aplikacji typu klient-serwer, w której serwer obsługuje wiele jednoczesnych połączeń od klientów. Serwer generuje losowe opóźnienia, co pozwala zaobserwować, jak system reaguje na obciążenie przy różnych czasach odpowiedzi.
 
-Aplikacja Klient-Serwer w Javie, która umożliwia komunikację między serwerem a klientem za pomocą połączenia TCP/IP. Klient może wysyłać żądania o obiekty do serwera, który odpowiada odpowiednią kolekcją obiektów.
+Serwer:
+-------
+1. Serwer działa na porcie 12345 i przyjmuje połączenia od klientów.
+2. Maksymalna liczba obsługiwanych klientów to 5. Jeśli liczba połączeń przekroczy ten limit, nowe połączenie zostanie odrzucone, a klient otrzyma odpowiedź „REFUSED”.
+3. Serwer rejestruje każde połączenie oraz generuje losowe opóźnienia przed obsługą klienta (od 1 do 3 sekund).
+4. Każdy klient otrzymuje unikalne ID, które jest przypisywane automatycznie przez serwer.
+5. Serwer przechowuje obiekty różnych klas w mapie i wysyła je do klienta na żądanie. Jeśli żądana klasa nie istnieje, serwer wysyła pusty obiekt.
 
-## Funkcjonalności:
+Klienci:
+--------
+1. Klient łączy się z serwerem, podając swoje ID (numer).
+2. Po udanym połączeniu klient może wybierać, jaką klasę obiektów chce pobrać (Kot, Pies, Samochód).
+3. Klient może również zakończyć połączenie, wybierając odpowiednią opcję w menu.
+4. Jeśli klient zażąda obiektów, które nie istnieją na serwerze, otrzyma dowolny obiekt, np. pusty obiekt klasy „Kot”.
+5. Klient obsługuje błędy rzutowania, jeśli serwer wyśle obiekt, którego nie można prawidłowo zrzutować.
 
-1. **Serwer**:
-    - Serwer obsługuje wiele połączeń klientów jednocześnie (do maksymalnej liczby 5 klientów).
-    - Serwer przyjmuje żądania o obiekty (np. `Kot`, `Pies`, `Samochod`).
-    - Jeśli klient wybierze klasę, która nie istnieje w mapie, serwer wysyła **dowolny obiekt** (np. pustego `Kota`).
-    - Jeśli klient wybierze opcję zakończenia połączenia, serwer zakończy komunikację z danym klientem.
-    - Serwer rejestruje liczbę aktywnych połączeń i wypisuje ją w logach za każdym razem, gdy klient się łączy lub rozłącza.
-    - W przypadku przekroczenia maksymalnej liczby klientów, serwer odrzuca połączenie i informuje klienta.
+Struktura:
+----------
+1. **Serwer.java** - Główna klasa serwera, która nasłuchuje na porcie, akceptuje połączenia i obsługuje klientów w osobnych wątkach.
+2. **Klient.java** - Klasa klienta, która łączy się z serwerem, wysyła zapytania o obiekty i odbiera odpowiedzi.
+3. **Kot.java, Pies.java, Samochod.java** - Przykładowe klasy obiektów, które serwer przechowuje i wysyła do klientów.
 
-2. **Klient**:
-    - Klient łączy się z serwerem, odbiera swoje ID i wykonuje żądania.
-    - Klient ma do wyboru trzy klasy (`Kot`, `Pies`, `Samochod`) oraz opcję zakończenia połączenia.
-    - Klient wielokrotnie wybiera różne obiekty do pobrania, aż osiągnie limit prób (3 próby).
-    - Klient obsługuje błąd rzutowania w przypadku, gdy serwer wyśle obiekt, który nie może zostać poprawnie zrzutowany.
+Funkcjonalności:
+----------------
+1. **Wielu klientów**: Serwer obsługuje do 5 klientów równocześnie. Każdy klient łączy się z serwerem, wysyła swoje ID i może żądać obiektów.
+2. **Losowe opóźnienia**: Każdy klient otrzymuje losowe opóźnienie przy jego obsłudze, co symuluje różne czasy odpowiedzi serwera.
+3. **Żądanie obiektów**: Klient może wybrać, jaką klasę obiektów chce pobrać (Kot, Pies, Samochód). Jeśli serwer nie znajdzie żądanej klasy, wysyła pusty obiekt.
+4. **Równoczesna obsługa klientów**: Serwer obsługuje wielu klientów w osobnych wątkach, co umożliwia równoczesną komunikację z wieloma klientami.
 
-## Jak uruchomić:
+Jak uruchomić:
+--------------
+1. **Uruchomienie serwera**:
+   - W terminalu przejdź do katalogu, w którym znajduje się plik `Serwer.java`.
+   - Skorzystaj z komendy: 
+     ```
+     javac Serwer.java
+     java Serwer
+     ```
+   - Serwer uruchomi się i zacznie nasłuchiwać na porcie 12345.
 
-### 1. Uruchomienie serwera:
+2. **Uruchomienie klienta**:
+   - W terminalu przejdź do katalogu, w którym znajduje się plik `Klient.java`.
+   - Skorzystaj z komendy:
+     ```
+     javac Klient.java
+     java Klient
+     ```
+   - Klient poprosi o podanie ID, a następnie wyświetli dostępne opcje (np. 1. Kot, 2. Pies, 3. Samochód).
+   - Klient może wybrać żądaną klasę lub zakończyć połączenie.
 
-Serwer należy uruchomić w pierwszej kolejności. Otwórz terminal, przejdź do katalogu z plikami i uruchom serwer:
+Przykładowe działanie:
+----------------------
+1. **Serwer loguje**:
+   - „Serwer uruchomiony...”
+   - „Serwer generuje opóźnienie: 1200ms przed obsługą klienta ID: 1”
+   - „Polaczenie nawiazane z klientem ID: 1”
+   - „Aktualna liczba polaczen: 1”
+   - „Serwer wysłał obiekty do klienta ID: 1: Koty”
+   
+2. **Klient loguje**:
+   - „Połączono z serwerem. Status: OK”
+   - „Wybierz klasę do pobrania:”
+     ```
+     1. Kot
+     2. Pies
+     3. Samochód
+     4. Zakończ połączenie
+     ```
+   - Klient wybiera, np. „1”, aby pobrać obiekty typu „Kot”.
 
+Uwagi:
+------
+- Serwer wykorzystuje losowe opóźnienia, które pozwalają zaobserwować, jak różne czasy odpowiedzi wpływają na działanie systemu.
+- Każdy klient ma możliwość zadawania różnych pytań o obiekty.
+- Klient ma możliwość zakończenia połączenia w każdej chwili.
 
-javac -d bin src/Serwer.java
-java -cp bin Serwer
-
-### 2. Uruchomienie klienta:
-
-Po uruchomieniu serwera, uruchom klienta:
-
-javac -d bin src/Klient.java
-java -cp bin Klient
-
-### 3. Interakcja z klientem:
-
-1. Klient połączy się z serwerem i otrzyma swoje ID.
-2. Klient wybiera klasę, z której chce otrzymać obiekty (np. `1` dla `Kot`).
-3. Serwer wysyła obiekty do klienta, a klient wypisuje je na konsoli.
-4. Klient może wybrać zakończenie połączenia, wpisując `4`.
-5. Liczba aktywnych połączeń jest rejestrowana przez serwer i wyświetlana w logach.
-
-## Szczegóły techniczne:
-
-### Serwer:
-- Serwer korzysta z **TCP** i działa na porcie 12345.
-- Serwer obsługuje wielu klientów jednocześnie przy użyciu wątków (ExecutorService).
-- Serwer ogranicza liczbę połączeń do maksymalnie 5 klientów. Dalsze próby połączenia są odrzucane.
-
-### Klient:
-- Klient łączy się z serwerem i odbiera obiekty z serwera.
-- Klient może wybierać obiekty do pobrania (np. `Kot`, `Pies`, `Samochod`) oraz zakończyć połączenie.
-
-
+***************************************************************************************
