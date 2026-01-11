@@ -54,10 +54,17 @@ public class Serwer {
                 // Serwer generuje ID dla nowego klienta
                 int clientId = clientIdCounter++;
 
+                // Dodanie logu z losowym opóźnieniem przed obsługą klienta
+                int delay = new Random().nextInt(2000) + 1000;  // Losowe opóźnienie od 1 do 3 sekundy
+                System.out.println("Serwer generuje opoznienie: " + delay + "ms przed obsluga klienta ID: " + clientId);
+
+                // Losowe opóźnienie przed obsługą klienta
+                Thread.sleep(delay);
+
                 // Obsługuje klienta w osobnym wątku
                 threadPool.submit(new ClientHandler(clientSocket, clientId));
             }
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         } finally {
             if (serverSocket != null && !serverSocket.isClosed()) {
@@ -121,7 +128,7 @@ public class Serwer {
                             objOutput.writeObject(emptyResponse);
                             System.out.println("Serwer wyslal dowolny obiekt do klienta ID: " + clientId);
                         }
-                        objOutput.flush(); // Wymuszenie zapisania danych przed zamknieciem
+                        objOutput.flush(); // Wymuszenie zapisania danych przed zamknięciem
                     } catch (EOFException e) {
                         // Obsługa rozłączenia klienta - logowanie informacji o rozłączeniu
                         System.out.println("Klient ID: " + clientId + " rozlaczyl sie.");
