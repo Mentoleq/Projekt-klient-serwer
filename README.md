@@ -1,6 +1,6 @@
 
 
-*** Serwer - Klient ***
+# *** Serwer - Klient ***
 
 
 Opis Projektu:
@@ -84,4 +84,5 @@ Uwagi:
 - Klient ma możliwość zakończenia połączenia w każdej chwili.
 
 ***************************************************************************************
+
 
