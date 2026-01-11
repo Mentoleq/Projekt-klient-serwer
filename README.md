@@ -1,115 +1,89 @@
-﻿# Projekt-klient-serwer
+# Aplikacja Klient-Serwer w Javie
 
-Aplikacja Klient-Serwer w Javie
+## Opis
 
-Projekt przedstawia aplikację w modelu klient-serwer. Aplikacja umożliwia komunikację pomiędzy serwerem, który przechowuje obiekty, a klientem, który łączy się z serwerem, wysyła zapytania o obiekty i otrzymuje odpowiedzi.
+Aplikacja działa w modelu klient-serwer, w którym klient może wysyłać żądania do serwera, aby otrzymać kolekcje obiektów różnych klas (np. `Kot`, `Pies`, `Samochod`). Serwer obsługuje wiele połączeń równocześnie i ogranicza liczbę połączeń do 5. Każdy klient ma swoje unikalne ID, które jest wysyłane do serwera przy nawiązywaniu połączenia.
 
-Wymagania
+## Struktura projektu
 
-Java 8 lub nowsza
+Projekt składa się z dwóch głównych klas:
 
-Git
+- **Serwer.java** - Klasa serwera, która akceptuje połączenia od klientów, zarządza nimi, obsługuje ich żądania i wysyła odpowiedzi.
+- **Klient.java** - Klasa klienta, która łączy się z serwerem, wysyła swoje ID i żąda obiektów od serwera.
 
-Klient i serwer działają na tym samym hoście (localhost)
+### Struktura katalogów:
 
-Opis projektu
-1. Serwer
+Projekt/
+├── bin/ (skompilowane pliki .class)
+└── src/ (wszystkie pliki źródłowe .java)
 
-Serwer tworzy cztery obiekty każdej klasy (Kot, Pies, Samochod), które przechowuje w mapie. Serwer:
+## Wymagania
 
-Obsługuje wielu klientów jednocześnie za pomocą wątków,
+- Java 8 lub nowsza
+- Kompilator `javac`
 
-Ogranicza liczbę klientów do maksymalnie 5,
+## Jak uruchomić aplikację
 
-Odrzuca połączenia, jeśli liczba klientów przekroczy limit,
+### 1. Kompilacja
+Aby skompilować projekt, użyj poniższego polecenia w katalogu głównym projektu:
 
-Wysyła odpowiedzi z obiektami pochodzącymi z mapy lub pustymi listami w przypadku braku obiektów.
+javac -d bin src/*.java
+To polecenie skompiluje wszystkie pliki .java w katalogu src i zapisze skompilowane pliki .class w katalogu bin.
 
-2. Klient
-
-Klient łączy się z serwerem i wykonuje następujące kroki:
-
-Wysyła swoje ID do serwera,
-
-Otrzymuje odpowiedź od serwera (OK lub REFUSED),
-
-Jeśli połączenie zostało zaakceptowane, klient wysyła zapytanie o obiekty (np. kot, pies, samochod),
-
-Otrzymuje listę obiektów i wyświetla je na ekranie,
-
-Obsługuje błędy związane z rzutowaniem obiektów i wyświetla komunikaty o błędach.
-
-3. Klasy
-
-Kot: Reprezentuje obiekt typu kot (ma pola imie i wiek).
-
-Pies: Reprezentuje obiekt typu pies (ma pola imie i rasa).
-
-Samochod: Reprezentuje obiekt typu samochód (ma pola marka i rokProdukcji).
-
-Instrukcja uruchomienia
-1. Uruchomienie serwera
-
-Aby uruchomić serwer, przejdź do folderu projektu w terminalu i wykonaj następujące polecenie:
-
-java -cp bin Serwer
+2. Uruchomienie serwera
+Po skompilowaniu projektu, uruchom serwer, wykonując następujące polecenie:
 
 
-Serwer uruchomi się na porcie 12345 i będzie oczekiwał na połączenia od klientów.
+java -cp bin Serwer 
+Serwer będzie nasłuchiwał na porcie 12345 i będzie oczekiwał na połączenia od klientów.
 
-2. Uruchomienie klienta
-
-Aby uruchomić klienta, w nowym terminalu przejdź do folderu projektu i uruchom:
-
-java -cp bin Klient
+3. Uruchomienie klienta
+Aby uruchomić klienta, użyj poniższego polecenia w nowym terminalu:
 
 
-Klient zostanie poproszony o podanie swojego ID, a następnie połączy się z serwerem i poprosi o obiekty.
+java -cp bin Klient 
+Po uruchomieniu klient poprosi o podanie ID klienta (np. 1), a następnie będzie mógł wybierać obiekty, które chce pobrać z serwera. Opcje to:
 
-3. Komunikacja między klientem a serwerem
+1. Kot
 
-Połączenie: Klient łączy się z serwerem, wysyła ID i czeka na odpowiedź (OK/REFUSED).
+2. Pies
 
-Zapytanie o obiekty: Klient może zapytać o obiekty klasy (kot, pies, samochod), a serwer odpowiada listą obiektów.
+3. Samochod
 
-Odrzucenie połączenia: Jeśli liczba klientów przekroczy limit, klient otrzyma komunikat o odrzuceniu połączenia.
+4. Zakoncz polaczenie
 
-4. Limit klientów
+4. Opcja zakończenia połączenia
+Po wybraniu opcji 4. Zakoncz polaczenie klient zakończy połączenie z serwerem.
 
-Serwer pozwala na maksymalnie 5 jednoczesnych połączeń. Po przekroczeniu limitu, nadmiarowi klienci otrzymają komunikat o odmowie połączenia.
-
-Struktura folderów
-
-src: Zawiera kod źródłowy w języku Java.
-
-Serwer.java: Logika serwera.
-
-Klient.java: Logika klienta.
-
-Kot.java: Definicja klasy Kot.
-
-Pies.java: Definicja klasy Pies.
-
-Samochod.java: Definicja klasy Samochod.
-
-bin: Folder, do którego kompilowane są pliki .class.
-
-Przykład działania
-
-Uruchomienie serwera:
-
-java -cp bin Serwer
-
-
-Uruchomienie klienta:
-
-java -cp bin Klient
-
-
-Klient wpisuje swoje ID, a następnie może zapytać o obiekty:
-
+Przykładowa interakcja
+Klient:
 Podaj swoje ID klienta: 1
-Podaj nazwę klasy do pobrania (kot/pies/samochod): kot
-Otrzymane obiekty:
-Kot{imie='Reksio', wiek=5}
-Kot{imie='Burek', wiek=3}
+Polaczono z serwerem. Status: OK
+Wybierz klase do pobrania:
+1. Kot
+2. Pies
+3. Samochod
+4. Zakoncz polaczenie
+Po wybraniu klasy, np. "1" dla Kot, klient otrzyma listę obiektów w formie numerowanej:
+
+# Otrzymane obiekty:
+1. Kot{imie='Reksio', wiek=5}
+2. Kot{imie='Burek', wiek=3}
+3. Kot{imie='Azor', wiek=2}
+4. Kot{imie='Kitek', wiek=4}
+   
+# Działanie serwera
+Serwer obsługuje wielu klientów jednocześnie i odpowiada na żądania obiektów. Gdy liczba aktywnych połączeń przekroczy maksymalną liczbę (5), serwer odrzuca połączenia nowych klientów.
+
+Zakończenie połączenia
+Po zakończeniu komunikacji przez klienta, połączenie zostanie zamknięte, a serwer wyświetli komunikat o zakończeniu połączenia danego klienta.
+
+Przykład logu na serwerze:
+
+Polaczenie nawiazane z klientem ID: 1
+Aktualna liczba polaczen: 1
+Klient 1 zadal obiekty: Pies
+Serwer wyslal obiekty do klienta ID: 1: Pies
+Klient ID: 1 rozlaczyl sie.
+Podsumowanie
+Ten projekt demonstruje podstawową komunikację między klientem a serwerem w Javie, z wykorzystaniem gniazd (sockets). Aplikacja obsługuje wiele połączeń jednocześnie, oferując klientom dostęp do obiektów w serwerze oraz możliwość zakończenia połączenia.
