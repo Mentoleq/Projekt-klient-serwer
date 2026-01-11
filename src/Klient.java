@@ -13,6 +13,8 @@ public class Klient {
         ObjectOutputStream objOutput = null;
         ObjectInputStream objInput = null;
         Scanner scanner = null;
+        int attempts = 0;  // Licznik prób
+        int maxAttempts = 3;  // Maksymalna liczba prób
 
         try {
             socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
@@ -20,18 +22,16 @@ public class Klient {
             input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             scanner = new Scanner(System.in);
 
-            // Wczytywanie ID klienta
-            System.out.print("Podaj swoje ID klienta: ");
-            String idInput = scanner.nextLine();  // Wczytujemy pełną linię
-            Integer klientId = Integer.parseInt(idInput.trim()); // Parsujemy ID klienta
-            output.println(klientId);  // Wysyłamy ID klienta do serwera
-
-            // Odbieranie odpowiedzi od serwera
+            // Odbieranie odpowiedzi od serwera po nawiązaniu połączenia
             String response = input.readLine();
             if (response != null && response.startsWith("Polaczenie odrzucone")) {
                 System.out.println("Odrzucono polaczenie");
                 return;  // Zakończenie działania klienta, jeśli połączenie zostało odrzucone
             }
+
+            // Odbieranie ID klienta od serwera
+            String clientIdResponse = input.readLine();
+            System.out.println(clientIdResponse);  // Wyświetlamy ID klienta otrzymane od serwera
 
             System.out.println("Polaczono z serwerem. Status: " + response);
 
@@ -39,7 +39,7 @@ public class Klient {
             objOutput = new ObjectOutputStream(socket.getOutputStream());
             objInput = new ObjectInputStream(socket.getInputStream());
 
-            while (true) {
+            while (attempts < maxAttempts) {
                 // Zapytanie o nazwę klasy do pobrania i numerowanie odpowiedzi
                 System.out.println("Wybierz klase do pobrania:");
                 System.out.println("1. Kot");
@@ -72,7 +72,9 @@ public class Klient {
                         break;
                     default:
                         System.out.println("Nieprawidłowy wybór.");
-                        continue;
+                        // Wysyłamy dowolny obiekt, jeśli wybór jest nieprawidłowy
+                        klasyRequest = "Dowolny";
+                        break;
                 }
 
                 // Wysyłamy żądanie o obiekty
@@ -87,12 +89,15 @@ public class Klient {
                     List<?> obiekty = (List<?>) responseObj;
                     // Sprawdzamy, czy obiekty w liście są typu Serializable
                     if (!obiekty.isEmpty() && obiekty.get(0) instanceof Serializable) {
-                        // Bezpieczne rzutowanie, ponieważ mamy pewność, że elementy są typu Serializable
                         List<Serializable> serializables = new ArrayList<>();
                         for (Object obj : obiekty) {
-                            // Rzutowanie każdego elementu w liście
-                            if (obj instanceof Serializable) {
-                                serializables.add((Serializable) obj);
+                            try {
+                                // Rzutowanie każdego elementu w liście
+                                if (obj instanceof Serializable) {
+                                    serializables.add((Serializable) obj);
+                                }
+                            } catch (ClassCastException e) {
+                                System.out.println("Błąd rzutowania: " + e.getMessage());
                             }
                         }
                         // Wypisanie otrzymanych obiektów
@@ -106,10 +111,16 @@ public class Klient {
                 } else {
                     System.out.println("Otrzymany obiekt nie jest listą.");
                 }
+
+                // Zwiększenie liczby prób
+                attempts++;
+                System.out.println("Pozostalo prob: " + (maxAttempts - attempts));
             }
 
+            System.out.println("Koniec dzialania klienta.");
+
         } catch (IOException e) {
-            System.out.println("Odrzucono polaczenie");
+            System.out.println("Polaczenie odrzucone. Serwer osiagnal limit polaczen.");
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

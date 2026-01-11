@@ -9,9 +9,10 @@ public class Serwer {
     private static final Map<String, List<Serializable>> obiektyMap = new HashMap<>();
     private static final Set<Integer> obslugiwaniKlienci = new HashSet<>();
     private static final ExecutorService threadPool = Executors.newFixedThreadPool(MAX_CLIENTS);
+    private static int clientIdCounter = 1;  // Licznik ID klientów
 
     public static void main(String[] args) throws IOException {
-        // Inicjalizacja obiektow w mapie
+        // Inicjalizacja obiektów w mapie
         obiektyMap.put("Kot", Arrays.asList(
                 new Kot("Reksio", 5),
                 new Kot("Burek", 3),
@@ -37,28 +38,31 @@ public class Serwer {
             System.out.println("Serwer uruchomiony...");
 
             while (true) {
-                // Akceptowanie polaczen od klientow
+                // Akceptowanie połączeń od klientów
                 Socket clientSocket = serverSocket.accept();
 
-                // Jesli przekroczono limit polaczen
+                // Jeśli przekroczono limit połączeń
                 if (obslugiwaniKlienci.size() >= MAX_CLIENTS) {
-                    // Odrzucenie polaczenia
+                    // Odrzucenie połączenia
                     System.out.println("Polaczenie odrzucone. Serwer osiagnal limit polaczen.");
                     PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
                     out.println("Polaczenie odrzucone. Serwer osiagnal limit polaczen.");
-                    clientSocket.close(); // Zamkniecie polaczenia
-                    continue; // Przechodzimy do kolejnego polaczenia
+                    clientSocket.close(); // Zamknięcie połączenia
+                    continue; // Przechodzimy do kolejnego połączenia
                 }
 
-                // Obsluguje klienta w osobnym watku
-                threadPool.submit(new ClientHandler(clientSocket));
+                // Serwer generuje ID dla nowego klienta
+                int clientId = clientIdCounter++;
+
+                // Obsługuje klienta w osobnym wątku
+                threadPool.submit(new ClientHandler(clientSocket, clientId));
             }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             if (serverSocket != null && !serverSocket.isClosed()) {
                 try {
-                    serverSocket.close(); // Zamkniecie serverSocket
+                    serverSocket.close(); // Zamknięcie serverSocket
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -68,9 +72,11 @@ public class Serwer {
 
     private static class ClientHandler implements Runnable {
         private final Socket socket;
+        private final int clientId;
 
-        public ClientHandler(Socket socket) {
+        public ClientHandler(Socket socket, int clientId) {
             this.socket = socket;
+            this.clientId = clientId;
         }
 
         @Override
@@ -78,28 +84,20 @@ public class Serwer {
             try (BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                  PrintWriter output = new PrintWriter(socket.getOutputStream(), true)) {
 
-                // Odbieranie ID klienta
-                String clientIdStr = input.readLine();
-                Integer clientId = Integer.parseInt(clientIdStr);
-                System.out.println("Polaczenie nawiazane z klientem ID: " + clientId);
-
-                // Sprawdzanie, czy serwer ma miejsce dla nowego klienta
-                if (obslugiwaniKlienci.size() >= MAX_CLIENTS) {
-                    output.println("Polaczenie odrzucone. Serwer osiagnal limit polaczen.");
-                    System.out.println("Serwer odrzucil klienta ID: " + clientId);
-                    socket.close(); // Zamykamy polaczenie, jezeli klient zostaje odrzucony
-                    return;
-                }
-
                 // Rejestracja klienta
                 obslugiwaniKlienci.add(clientId);
                 output.println("OK");
-                output.flush(); // Wymuszenie zapisania danych przed zamknieciem
 
-                // Wyswietlanie liczby aktualnych polaczen
+                // Wysyłamy klientowi jego ID
+                output.println("Twoje ID to: " + clientId);
+
+                // Logowanie połączenia klienta
+                System.out.println("Polaczenie nawiazane z klientem ID: " + clientId);
+
+                // Wypisanie aktualnej liczby połączeń
                 System.out.println("Aktualna liczba polaczen: " + obslugiwaniKlienci.size());
 
-                // Losowe opoznienie
+                // Losowe opóźnienie
                 Thread.sleep((long) (Math.random() * 2000));
 
                 // Teraz tworzymy Object streams dla dalszej komunikacji
@@ -108,16 +106,20 @@ public class Serwer {
 
                 while (true) {
                     try {
-                        // Odbieranie zadania klienta o obiekty
+                        // Odbieranie żądania klienta o obiekty
                         String objectRequest = (String) objInput.readObject();
                         System.out.println("Klient " + clientId + " zadal obiekty: " + objectRequest);
 
-                        // Wysylanie obiektow do klienta
+                        // Wysyłanie obiektów do klienta
                         if (obiektyMap.containsKey(objectRequest)) {
                             objOutput.writeObject(obiektyMap.get(objectRequest));
                             System.out.println("Serwer wyslal obiekty do klienta ID: " + clientId + ": " + objectRequest);
                         } else {
-                            objOutput.writeObject(new ArrayList<Serializable>());
+                            // Wysłanie dowolnego obiektu, np. Kot
+                            List<Serializable> emptyResponse = new ArrayList<>();
+                            emptyResponse.add(new Kot("Brak", 0)); // Wysyłamy pusty obiekt Kot
+                            objOutput.writeObject(emptyResponse);
+                            System.out.println("Serwer wyslal dowolny obiekt do klienta ID: " + clientId);
                         }
                         objOutput.flush(); // Wymuszenie zapisania danych przed zamknieciem
                     } catch (EOFException e) {
@@ -132,6 +134,9 @@ public class Serwer {
                 // Zakonczenie polaczenia
                 try {
                     socket.close();
+                    // Zaktualizowanie liczby połączeń
+                    obslugiwaniKlienci.remove(clientId);
+                    System.out.println("Aktualna liczba polaczen: " + obslugiwaniKlienci.size());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
