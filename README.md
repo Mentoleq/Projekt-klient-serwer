@@ -2,6 +2,8 @@
 
 # Serwer - Klient
 
+Tomasz Wiśniewski
+Mikołaj Pol
 
 Opis Projektu:
 ---------------
@@ -55,6 +57,7 @@ Jak uruchomić:
      ```
    - Klientowi nadawany jest numer ID, a następnie wyświetli dostępne opcje.
    - Klient może wybrać żądaną klasę lub zakończyć połączenie.
+
 
 
 
